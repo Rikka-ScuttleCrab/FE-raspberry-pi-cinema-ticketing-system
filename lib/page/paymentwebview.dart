@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class PaymentWebView extends StatefulWidget {
-  const PaymentWebView({super.key});
+  final String paymentUrl;
+
+  const PaymentWebView({super.key, required this.paymentUrl});
 
   @override
   State<PaymentWebView> createState() => _PaymentWebViewState();
@@ -19,15 +21,29 @@ class _PaymentWebViewState extends State<PaymentWebView> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
       ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageStarted: (String url) => setState(() => _isLoading = true),
+        NavigationDelegate(          onNavigationRequest: (NavigationRequest request) {
+            if (request.url.contains('/api/v1/payments/return')) {
+              final uri = Uri.parse(request.url);
+              final isSuccess = uri.queryParameters['vnp_ResponseCode'] == '00';
+              final message = isSuccess ? 'Thanh toán VNPay thành công' : 'Thanh toán VNPay thất bại';
+
+              Future.microtask(() {
+                if (mounted) {
+                  Navigator.of(context).pop({'success': isSuccess, 'message': message, 'params': uri.queryParameters});
+                }
+              });
+              return NavigationDecision.prevent;
+            }
+
+            return NavigationDecision.navigate;
+          },          onPageStarted: (String url) => setState(() => _isLoading = true),
           onPageFinished: (String url) => setState(() => _isLoading = false),
           onWebResourceError: (WebResourceError error) {
             debugPrint("Lỗi WebView: ${error.description}");
           },
         ),
       )
-      ..loadRequest(Uri.parse("http://sandbox.vnpayment.vn/tryitnow/Home/CreateOrder"));
+      ..loadRequest(Uri.parse(widget.paymentUrl));
   }
 
   @override

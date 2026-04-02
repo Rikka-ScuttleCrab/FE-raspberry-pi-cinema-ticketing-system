@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/film.dart'; // Thay đổi đường dẫn import cho đúng
 import '../models/ticket_type.dart';
+import '../services/vnpay_service.dart';
 import 'paymentwebview.dart';
 
 class BookingScreen extends StatefulWidget {
@@ -186,10 +187,56 @@ class _BookingScreenState extends State<BookingScreen> {
         children: [
           Text("Tổng: ${total.toInt()}đ", style: const TextStyle(fontSize: 18, color: Colors.orange, fontWeight: FontWeight.bold)),
           ElevatedButton(
-            onPressed: () {
-              if (currentStep == 2 && selectedSeats.isNotEmpty) nextStep();
-              else if (currentStep == 3 && nameController.text.isNotEmpty) {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentWebView()));
+            onPressed: () async {
+              if (currentStep == 2 && selectedSeats.isNotEmpty) {
+                nextStep();
+                return;
+              }
+
+              if (currentStep == 3) {
+                if (nameController.text.isEmpty || phoneController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng điền đầy đủ họ tên và số điện thoại')));
+                  return;
+                }
+
+                if (total <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng chọn ghế trước khi thanh toán')));
+                  return;
+                }
+
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => const Center(child: CircularProgressIndicator()),
+                );
+
+                try {
+                  final result = await VnpayService.createPayment(
+                    amount: total,
+                    orderInfo: '${widget.film.name} - ${selectedSeats.length} vé',
+                    orderType: 'other',
+                  );
+
+                  Navigator.of(context).pop();
+
+                  final ret = await Navigator.push<Map<String, dynamic>>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PaymentWebView(paymentUrl: result.paymentUrl),
+                    ),
+                  );
+
+                  if (ret != null) {
+                    final msg = ret['message'] ?? 'Đã có kết quả thanh toán';
+                    final success = ret['success'] == true;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(msg), backgroundColor: success ? Colors.green : Colors.red),
+                    );
+                  }
+                } catch (error) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi tạo thanh toán: $error')));
+                }
               }
             },
             child: Text(currentStep == 3 ? "THANH TOÁN" : "TIẾP THEO"),
