@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../data/mockdata.dart';
+import 'package:provider/provider.dart';
+import '../data/controllers/movie_controller.dart';
 import '../page/movieDetail.dart';
 import '../page/booking.dart';
 
@@ -11,13 +12,33 @@ class MovieListScreen extends StatefulWidget {
 }
 
 class _MovieListScreenState extends State<MovieListScreen> {
-  int? selectedFilmId;
+  int? selectedmovieId;
 
   @override
   Widget build(BuildContext context) {
+    final movieController = context.watch<MovieController>();
+    final movies = movieController.movies;
+
+    if (movieController.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (movieController.errorMessage != null) {
+      return Scaffold(body: Center(child: Text(movieController.errorMessage!)));
+    }
+
+    if (movies.isEmpty) {
+      return const Scaffold(
+        body: Center(child: Text("Không có phim để hiển thị")),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("CHỌN PHIM", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          "CHỌN PHIM",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         backgroundColor: Colors.black,
       ),
@@ -29,15 +50,15 @@ class _MovieListScreenState extends State<MovieListScreen> {
           mainAxisSpacing: 15,
           crossAxisSpacing: 15,
         ),
-        itemCount: mockFilms.length,
+        itemCount: movies.length,
         itemBuilder: (context, index) {
-          final film = mockFilms[index];
-          final isSelected = selectedFilmId == film.id;
+          final movie = movies[index];
+          final isSelected = selectedmovieId == movie.id;
 
           return GestureDetector(
             onTap: () {
               setState(() {
-                selectedFilmId = isSelected ? null : film.id;
+                selectedmovieId = isSelected ? null : movie.id;
               });
             },
             child: ClipRRect(
@@ -45,11 +66,15 @@ class _MovieListScreenState extends State<MovieListScreen> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(film.posterImageURL, fit: BoxFit.cover),
-
+                  Image.network(
+                    movie.posterPaths.isNotEmpty
+                        ? movie.posterPaths[0]
+                        : 'https://4kwallpapers.com/images/wallpapers/404-not-found-cute-2048x2048-18164.jpg',
+                    fit: BoxFit.cover,
+                  ),
                   if (isSelected)
                     Container(
-                      color: Colors.black.withOpacity(0.7), 
+                      color: Colors.black.withOpacity(0.7),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -60,7 +85,10 @@ class _MovieListScreenState extends State<MovieListScreen> {
                             onPressed: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (_) => MovieDetailScreen(film: film)),
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      MovieDetailScreen(movie: movie),
+                                ),
                               );
                             },
                           ),
@@ -71,15 +99,16 @@ class _MovieListScreenState extends State<MovieListScreen> {
                             color: Colors.orange,
                             onPressed: () {
                               Navigator.push(
-                                context, 
-                                MaterialPageRoute(builder: (_) => BookingScreen(film: film))
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => BookingScreen(movie: movie),
+                                ),
                               );
                             },
                           ),
                         ],
                       ),
                     ),
-
                   if (!isSelected)
                     Positioned(
                       bottom: 0,
@@ -89,8 +118,11 @@ class _MovieListScreenState extends State<MovieListScreen> {
                         padding: const EdgeInsets.all(8),
                         color: Colors.black54,
                         child: Text(
-                          film.name,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          movie.title,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                           textAlign: TextAlign.center,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -125,7 +157,10 @@ class _MovieListScreenState extends State<MovieListScreen> {
         child: Column(
           children: [
             Icon(icon, size: 20),
-            Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),

@@ -1,8 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'page/welcome.dart';
-import 'controller/timeout.dart';
-void main() {
-  runApp(const MovieKioskApp());
+import 'data/controllers/movie_controller.dart';
+import 'data/controllers/otp_controller.dart';
+
+void main() async {
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => MovieController()..initData(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => OTPController(),
+        ),
+      ],
+      child: const MovieKioskApp(),
+    ),
+  );
 }
 
 class MovieKioskApp extends StatelessWidget {
@@ -10,28 +25,26 @@ class MovieKioskApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SessionTimeoutListener(
-      timeout: const Duration(minutes: 5),
-      onTimeout: () {
-        final context = navigatorKey.currentContext;
-        if (context != null) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const WelcomePage()),
-            (route) => false,
-          );
-        }
-      },
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        title: 'Galaxy Cinema Kiosk',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          brightness: Brightness.dark,
-          primarySwatch: Colors.orange,
-          scaffoldBackgroundColor: const Color(0xFF1A1A1A),
-        ),
-        home: const WelcomePage(),
+    final movieController = Provider.of<MovieController>(context, listen: true);
+
+    return MaterialApp(
+      navigatorKey: navigatorKey,
+      title: 'Galaxy Cinema Kiosk',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.orange,
+        scaffoldBackgroundColor: const Color(0xFF1A1A1A),
       ),
+      home: movieController.isLoading
+          ? const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            )
+          : movieController.errorMessage != null
+              ? Scaffold(
+                  body: Center(child: Text(movieController.errorMessage!)),
+                )
+              : WelcomePage(movies: movieController.movies),
     );
   }
 }

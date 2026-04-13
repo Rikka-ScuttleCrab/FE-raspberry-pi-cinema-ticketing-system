@@ -1,10 +1,83 @@
 import 'package:flutter/material.dart';
-import '../models/film.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import '../data/models/movie.dart';
 import '../page/booking.dart';
 
 class MovieDetailScreen extends StatelessWidget {
-  final Film film;
-  const MovieDetailScreen({super.key, required this.film});
+  final Movie movie;
+  const MovieDetailScreen({super.key, required this.movie});
+
+  // Hàm mở trình phát YouTube trực tiếp
+  void _showYouTubePlayer(BuildContext context, String videoUrl) {
+    final videoId = YoutubePlayer.convertUrlToId(videoUrl);
+    if (videoId == null) return;
+
+    YoutubePlayerController controller = YoutubePlayerController(
+      initialVideoId: videoId,
+      flags: const YoutubePlayerFlags(
+        autoPlay: true,
+        mute: false,
+        disableDragSeek: false,
+        isLive: false,
+        forceHD: false,
+        enableCaption: false,
+        useHybridComposition: true,
+      ),
+    );
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Center(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.9,
+            child: Material(
+              color: Colors.transparent,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 35,
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: YoutubePlayer(
+                      controller: controller,
+                      showVideoProgressIndicator: true,
+                      progressIndicatorColor: Colors.orange,
+                      bottomActions: [
+                        const SizedBox(width: 14.0),
+                        CurrentPosition(),
+                        const SizedBox(width: 8.0),
+                        ProgressBar(
+                          isExpanded: true,
+                          colors: const ProgressBarColors(
+                            playedColor: Colors.orange,
+                            handleColor: Colors.orangeAccent,
+                          ),
+                        ),
+                        RemainingDuration(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    ).then((_) => controller.dispose());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,46 +88,143 @@ class MovieDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.network(film.posterImageURL, height: 500, width: double.infinity, fit: BoxFit.fill),
+            Image.network(
+              movie.posterPaths[0],
+              height: 500,
+              width: double.infinity,
+              fit: BoxFit.fill,
+            ),
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(film.name, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.orange)),
+                  Text(
+                    movie.title,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
+                  ),
                   const SizedBox(height: 10),
-                  Row(
+
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 8,
                     children: [
-                      const Icon(Icons.access_time, size: 18, color: Colors.grey),
-                      const SizedBox(width: 5),
-                      Text(film.duration, style: const TextStyle(color: Colors.grey)),
-                      const SizedBox(width: 20),
-                      const Icon(Icons.movie, size: 18, color: Colors.grey),
-                      const SizedBox(width: 5),
-                      Text(film.categories.map((e) => e.name).join(', '), style: const TextStyle(color: Colors.grey)),
+                      _buildInfoChip("🔞 ${movie.ageRating}"),
+                      _buildInfoChip("⏱ ${movie.durationMin} phút"),
+                      _buildInfoChip("🎬 ${movie.categories.join(', ')}"),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  const Text("Nội dung phim", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
-                  Text(film.description, style: const TextStyle(fontSize: 16, height: 1.5, color: Colors.white70)),
-                  const SizedBox(height: 40),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 60,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  // Hàng nút bấm
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BookingScreen(movie: movie),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            "MUA VÉ",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
-                      onPressed: () {
-                        // Chuyển sang trang đặt vé
-                        Navigator.push(
-                          context, 
-                          MaterialPageRoute(builder: (_) => BookingScreen(film: film))
-                        );
+                      const SizedBox(width: 15),
+                      Expanded(
+                        flex: 1,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            side: const BorderSide(color: Colors.orange),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: () {
+                            if (movie.trailerPaths.isNotEmpty) {
+                              _showYouTubePlayer(
+                                context,
+                                movie.trailerPaths[0],
+                              );
+                            }
+                          },
+                          icon: const Icon(
+                            Icons.play_arrow,
+                            color: Colors.orange,
+                          ),
+                          label: const Text(
+                            "TRAILER",
+                            style: TextStyle(color: Colors.orange),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  const Text(
+                    "DIỄN VIÊN",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  SizedBox(
+                    height: 30,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: movie.actors.split(',').length,
+                      separatorBuilder: (context, index) => Row(
+                        children: [
+                          const SizedBox(width: 20),
+                          Container(
+                            width: 1,
+                            height: 30,
+                            color: Colors.white10,
+                          ),
+                          const SizedBox(width: 20),
+                        ],
+                      ),
+                      itemBuilder: (context, index) {
+                        final actorList = movie.actors.split(',');
+                        return _buildActorItem(actorList[index]);
                       },
-                      child: const Text("MUA VÉ", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  const Text(
+                    "Nội dung phim",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    movie.description,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.5,
+                      color: Colors.white70,
                     ),
                   ),
                 ],
@@ -62,6 +232,33 @@ class MovieDetailScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildActorItem(String actorName) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          actorName.trim(),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoChip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 14, color: Colors.white70),
       ),
     );
   }

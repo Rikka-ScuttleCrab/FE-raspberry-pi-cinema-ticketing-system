@@ -2,6 +2,11 @@
 
 A new Flutter project.
 
+
+Test with Mockdata run: 
+flutter run test/TestMain.dart
+
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

@@ -1,0 +1,1 @@
+enum OTPType { email, sms }

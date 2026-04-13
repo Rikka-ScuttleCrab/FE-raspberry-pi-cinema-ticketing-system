@@ -13,7 +13,7 @@ class TicketType {
     return TicketType(
       id: map['id']?.toInt() ?? 0,
       name: map['name'] ?? '',
-      price: (map['price'] as num?)?.toDouble() ?? 0.0,
+      price: (map['base_price'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

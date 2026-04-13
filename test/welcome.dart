@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../data/models/movie.dart';
-import 'listMovies.dart';
+import 'package:demo/data/mockdata.dart';
+import 'package:demo/page/listMovies.dart';
 
 class WelcomePage extends StatefulWidget {
-  final List<Movie> movies;
-
-  const WelcomePage({super.key, required this.movies});
+  const WelcomePage({super.key});
 
   @override
   State<WelcomePage> createState() => _WelcomePageState();
@@ -20,12 +18,12 @@ class _WelcomePageState extends State<WelcomePage> {
   @override
   void initState() {
     super.initState();
-
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      final movies = widget.movies;
-      if (movies.isEmpty) return;
-
-      _currentPage = (_currentPage + 1) % movies.length;
+    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
+      if (_currentPage < mockMovies.length - 1) {
+        _currentPage++;
+      } else {
+        _currentPage = 0;
+      }
       if (_pageController.hasClients) {
         _pageController.animateToPage(
           _currentPage,
@@ -45,31 +43,27 @@ class _WelcomePageState extends State<WelcomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final movies = widget.movies;
-
     return Scaffold(
       body: GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const MovieListScreen()),
-        ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MovieListScreen()),
+          );
+        },
         child: Stack(
           children: [
-            if (movies.isEmpty)
-              const Center(child: Text("Không có phim"))
-            else
-              PageView.builder(
-                controller: _pageController,
-                itemCount: movies.length,
-                itemBuilder: (context, index) {
-                  return Image.network(
-                    movies[index].posterPaths.isNotEmpty
-                        ? movies[index].posterPaths[0]
-                        : 'https://4kwallpapers.com/images/wallpapers/404-not-found-cute-2048x2048-18164.jpg',
-                    fit: BoxFit.fill,
-                  );
-                },
-              ),
+            PageView.builder(
+              controller: _pageController,
+              itemCount: mockMovies.length,
+              itemBuilder: (context, index) {
+                return Image.network(
+                  mockMovies[index].posterPaths[0],
+                  fit: BoxFit.fill,
+                );
+              },
+            ),
+            // Lớp phủ Gradient để poster trông đẹp hơn
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(

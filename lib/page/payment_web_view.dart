@@ -27,7 +27,9 @@ class _PaymentWebViewState extends State<PaymentWebView> {
           },
         ),
       )
-      ..loadRequest(Uri.parse("http://sandbox.vnpayment.vn/tryitnow/Home/CreateOrder"));
+      ..loadRequest(
+        Uri.parse("http://sandbox.vnpayment.vn/tryitnow/Home/CreateOrder"),
+      );
   }
 
   @override
@@ -41,7 +43,9 @@ class _PaymentWebViewState extends State<PaymentWebView> {
         children: [
           WebViewWidget(controller: _controller),
           if (_isLoading)
-            const Center(child: CircularProgressIndicator(color: Colors.orange)),
+            const Center(
+              child: CircularProgressIndicator(color: Colors.orange),
+            ),
         ],
       ),
     );
