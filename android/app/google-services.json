@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "472364929124",
+    "project_id": "sms-otp-dc235",
+    "storage_bucket": "sms-otp-dc235.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:472364929124:android:6aa8f9baaedfeb60668f71",
+        "android_client_info": {
+          "package_name": "com.example.demo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQ9lbDJj6IQu1aT-NA8zHpHYPyEmYX_9k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

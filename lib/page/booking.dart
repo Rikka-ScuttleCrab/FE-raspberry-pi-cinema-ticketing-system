@@ -148,22 +148,24 @@ class _BookingScreenState extends State<BookingScreen> {
         return;
       }
 
+      // Lấy provider
       final otpCtrl = Provider.of<OTPController>(context, listen: false);
       final contact = contactController.text.trim();
       final type = _detectOTPType(contact);
 
+      // Đảm bảo số điện thoại có định dạng chuẩn +84
+      String formattedContact = contact;
+      if (type == OTPType.sms && !contact.startsWith('+')) {
+        formattedContact = '+84' + contact.replaceFirst(RegExp(r'^0+'), '');
+      }
+
       await otpCtrl.sendOTP(
-        contact,
+        formattedContact,
         type,
             (error) => _showSnackBar(error, Colors.red),
             () {
-          _showSnackBar(
-            type == OTPType.email
-                ? "OTP đã gửi qua email!"
-                : "OTP đã gửi qua SMS!",
-            Colors.green,
-          );
-          setState(() => currentStep++);
+          _showSnackBar("Đã gửi mã OTP!", Colors.green);
+          setState(() => currentStep++); // Chuyển sang bước nhập OTP
         },
       );
       return;

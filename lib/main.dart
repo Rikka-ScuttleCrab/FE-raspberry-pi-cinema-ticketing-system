@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'page/welcome.dart';
+import 'firebase_options.dart';
 import 'data/controllers/movie_controller.dart';
 import 'data/controllers/otp_controller.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 4. Khởi tạo Firebase chính thức
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(
     MultiProvider(
       providers: [
