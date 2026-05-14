@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../data/models/movie.dart';
-import '../page/booking.dart';
+import '../page/order.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   final Movie movie;
@@ -136,7 +136,7 @@ class MovieDetailScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => BookingScreen(movie: movie),
+                                builder: (_) => OrderScreen(movie: movie),
                               ),
                             );
                           },

@@ -22,7 +22,7 @@ class MovieController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _movies = await _repository.fetchMovies(); // [cite: 13]
+      _movies = await _repository.fetchMovies();
     } catch (e) {
       _failure = ErrorHandler.handle(e);
     } finally {
@@ -37,7 +37,6 @@ class MovieController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Đợi lấy xong danh sách phim
       _movies = await _repository.fetchMovies();
       
     } catch (e) {

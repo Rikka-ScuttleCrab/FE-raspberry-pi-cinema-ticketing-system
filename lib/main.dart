@@ -5,6 +5,8 @@ import 'page/welcome.dart';
 import 'firebase_options.dart';
 import 'data/controllers/movie_controller.dart';
 import 'data/controllers/otp_controller.dart';
+import 'data/controllers/voucher_controller.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +23,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => OTPController(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => VoucherController(),
         ),
       ],
       child: const MovieKioskApp(),

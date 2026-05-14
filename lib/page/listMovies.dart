@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../data/controllers/movie_controller.dart';
 import '../page/movieDetail.dart';
-import '../page/booking.dart';
+import '../page/order.dart';
 
 class MovieListScreen extends StatefulWidget {
   const MovieListScreen({super.key});
@@ -101,7 +101,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => BookingScreen(movie: movie),
+                                  builder: (_) => OrderScreen(movie: movie),
                                 ),
                               );
                             },

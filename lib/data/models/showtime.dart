@@ -30,7 +30,7 @@ class Showtime {
       ticket_type: map['ticket_type'] != null
           ? TicketType.fromMap(map['ticket_type'])
           : TicketType(id: 0, name: '', price: 0.0),
-      book_seats: (map['booked_seats'] as List<dynamic>? ?? [])
+      book_seats: (map['reserved_seats'] as List<dynamic>? ?? [])
           .map((item) => Seat.fromMap(item))
           .toList(),
       theater_room_id: map['theater_room_id'] ?? 0,
