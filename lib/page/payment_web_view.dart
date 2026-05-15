@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '../data/controllers/payment_controller.dart';
+import '../data/controllers/order_controller.dart';
+import '../data/controllers/ticket_controller.dart';
 import '../page/ticketPrint.dart';
 
 class PaymentWebView extends StatefulWidget {
@@ -70,8 +72,19 @@ class _PaymentWebViewState extends State<PaymentWebView> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (_) =>
-                    TicketPrintingScreen(orderId: widget.orderId),
+                builder: (_) => MultiProvider(
+                  providers: [
+                    ChangeNotifierProvider(
+                      create: (_) => TicketController(),
+                    ),
+                    ChangeNotifierProvider(
+                      create: (_) => OrderController(),
+                    ),
+                  ],
+                  child: TicketPrintingScreen(
+                    orderId: widget.orderId,
+                  ),
+                ),
               ),
             );
           }
@@ -82,13 +95,13 @@ class _PaymentWebViewState extends State<PaymentWebView> {
       );
 
       retry++;
-      return retry < 50; // tối đa ~20s
+      return retry < 50;
     });
   }
   @override
   Widget build(BuildContext context) {
-    // final paymentCtrl = Provider.of<PaymentController>(context);
-
+    final paymentCtrl = Provider.of<PaymentController>(context);
+    final orderCtrl = Provider.of<OrderController>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text("THANH TOÁN"),
@@ -131,7 +144,19 @@ class _PaymentWebViewState extends State<PaymentWebView> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => TicketPrintingScreen(orderId: widget.orderId),
+                        builder: (_) => MultiProvider(
+                          providers: [
+                            ChangeNotifierProvider(
+                              create: (_) => TicketController(),
+                            ),
+                            ChangeNotifierProvider(
+                              create: (_) => OrderController(),
+                            ),
+                          ],
+                          child: TicketPrintingScreen(
+                            orderId: widget.orderId,
+                          ),
+                        ),
                       ),
                     );
                   }

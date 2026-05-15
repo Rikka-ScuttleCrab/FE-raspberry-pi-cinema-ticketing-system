@@ -125,18 +125,6 @@ class _OrderScreenState extends State<OrderScreen> {
 
         Navigator.push(
           context,
-          // MaterialPageRoute(
-          //   builder: (_) => MultiProvider(
-          //     providers: [
-          //       ChangeNotifierProvider(create: (_) => PaymentController()),
-          //       ChangeNotifierProvider(create: (_) => TicketController()),
-          //     ],
-          //     child: PaymentWebView(
-          //       orderId: orderId,
-          //       amount: amount,
-          //     ),
-          //   ),
-          // ),
           MaterialPageRoute(
             builder: (_) => MultiProvider(
               providers: [
@@ -144,9 +132,22 @@ class _OrderScreenState extends State<OrderScreen> {
                 ChangeNotifierProvider(create: (_) => TicketController()),
                 ChangeNotifierProvider(create: (_) => OrderController()),
               ],
-              child: TicketPrintingScreen(orderId: orderId),
+              child: PaymentWebView(
+                orderId: orderId,
+                amount: amount,
+              ),
             ),
           ),
+          // MaterialPageRoute(
+          //   builder: (_) => MultiProvider(
+          //     providers: [
+          //       ChangeNotifierProvider(create: (_) => PaymentController()),
+          //       ChangeNotifierProvider(create: (_) => TicketController()),
+          //       ChangeNotifierProvider(create: (_) => OrderController()),
+          //     ],
+          //     child: TicketPrintingScreen(orderId: orderId),
+          //   ),
+          // ),
         );
       },
       onError: (err) {
