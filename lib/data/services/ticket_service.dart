@@ -10,4 +10,13 @@ class TicketService {
       },
     ).timeout(const Duration(seconds: 10));
   }
+
+  Future<http.Response> sendQr(int orderId) async {
+    return await http.post(
+      Uri.parse("$uri/api/v1/tickets/send/$orderId"),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    ).timeout(const Duration(seconds: 15));
+  }
 }

@@ -229,16 +229,23 @@ class _OrderScreenState extends State<OrderScreen> {
       }
 
       final otpCtrl = Provider.of<OTPController>(context, listen: false);
+      final email = contactController.text.trim();
 
-      final contact = contactController.text.trim();
-      final type = _detectOTPType(contact);
-      final formatted = type == OTPType.sms
-          ? OTPHelper.formatPhone(contact)
-          : contact;
+      final isValidEmail = RegExp(
+        r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$',
+      ).hasMatch(email);
+
+      if (!isValidEmail) {
+        _showSnackBar(
+          "Email không hợp lệ",
+          Colors.red,
+        );
+        return;
+      }
 
       await otpCtrl.sendOTP(
-        formatted,
-        type,
+          email,
+          OTPType.email,
         (err) => _showSnackBar(err, Colors.red),
         () {
           _showSnackBar("Đã gửi mã OTP!", Colors.green);
@@ -254,7 +261,6 @@ class _OrderScreenState extends State<OrderScreen> {
       final otpCtrl = Provider.of<OTPController>(context, listen: false);
 
       final contact = contactController.text.trim();
-      final type = _detectOTPType(contact);
 
       void onDone() {
         _isVerifyingOTP = false;
@@ -268,11 +274,7 @@ class _OrderScreenState extends State<OrderScreen> {
         otpController.clear();
       }
 
-      if (type == OTPType.email) {
         otpCtrl.verifyEmailOTP(contact, otpController.text, onError, onDone);
-      } else {
-        otpCtrl.verifyOTP(otpController.text, onError, onDone);
-      }
       return;
     }
 

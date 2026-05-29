@@ -32,6 +32,15 @@ class StepInfoVoucher extends StatelessWidget {
     required this.seats,
   });
 
+
+  
+  bool _isValidEmail(String email) {
+    return RegExp(
+      r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$',
+    ).hasMatch(email);
+  }
+
+  
   @override
   Widget build(BuildContext context) {
     final voucherCtrlProvider = context.watch<VoucherController>();
@@ -51,10 +60,23 @@ class StepInfoVoucher extends StatelessWidget {
           const SizedBox(height: 15),
           TextField(
             controller: contactCtrl,
-            decoration: const InputDecoration(
-              labelText: "Email/SĐT",
-              border: OutlineInputBorder(),
+
+            keyboardType: TextInputType.emailAddress,
+
+            decoration: InputDecoration(
+              labelText: "Email",
+              border: const OutlineInputBorder(),
+
+              errorText: contactCtrl.text.isEmpty
+                  ? null
+                  : _isValidEmail(contactCtrl.text)
+                  ? null
+                  : "Email không hợp lệ",
             ),
+
+            onChanged: (_) {
+              (context as Element).markNeedsBuild();
+            },
           ),
 
           const SizedBox(height: 30),

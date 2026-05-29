@@ -29,4 +29,11 @@ class TicketController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> sendQr(int orderId) async {
+
+    return await _repository.sendQr(orderId);
+  }
+
+  
 }

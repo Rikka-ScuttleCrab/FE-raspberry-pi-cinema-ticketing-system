@@ -36,4 +36,30 @@ class TicketRepository {
       );
     }
   }
+
+
+  Future<bool> sendQr(int orderId) async {
+
+    try {
+
+      final response =
+          await _service.sendQr(orderId);
+
+      if (response.statusCode == 200) {
+
+        final data =
+            jsonDecode(
+              utf8.decode(response.bodyBytes),
+            );
+
+        return data["success"] == true;
+      }
+
+      return false;
+
+    } catch (e) {
+
+      return false;
+    }
+  }
 }

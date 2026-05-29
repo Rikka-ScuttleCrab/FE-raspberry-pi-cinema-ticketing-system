@@ -1,238 +1,169 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../data/controllers/ticket_controller.dart';
-import '../data/controllers/order_controller.dart';
-import '../data/models/ticket.dart';
-import '../data/models/order_detail.dart';
 
+import '../data/controllers/ticket_controller.dart';
+import '../data/controllers/movie_controller.dart';
+import './welcome.dart';
 class TicketPrintingScreen extends StatefulWidget {
+
   final int orderId;
 
-  const TicketPrintingScreen({super.key, required this.orderId});
+  const TicketPrintingScreen({
+    super.key,
+    required this.orderId,
+  });
 
   @override
-  State<TicketPrintingScreen> createState() => _TicketPrintingScreenState();
+  State<TicketPrintingScreen> createState() =>
+      _TicketPrintingScreenState();
 }
 
-class _TicketPrintingScreenState extends State<TicketPrintingScreen> {
-  List<Ticket> tickets = [];
-  OrderDetail? orderDetail;
-  bool isPrinting = true;
-  String message = "ĐANG XỬ LÝ THANH TOÁN...";
+class _TicketPrintingScreenState
+    extends State<TicketPrintingScreen> {
+
+  bool isLoading = true;
+
+  String message =
+      "ĐANG GỬI VÉ ĐIỆN TỬ...";
 
   @override
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _waitAndPrint();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) {
+
+      _sendTicket();
     });
   }
 
-  Future<void> _waitAndPrint() async {
-    final ticketCtrl = Provider.of<TicketController>(context, listen: false);
-  
-    final orderCtrl = Provider.of<OrderController>(context, listen: false);
+  Future<void> _sendTicket() async {
 
-    await orderCtrl.getOrder(
+    final ticketCtrl =
+        Provider.of<TicketController>(
+      context,
+      listen: false,
+    );
+
+    final movieController =
+        Provider.of<MovieController>(
+      context,
+      listen: false,
+    );
+
+    final success =
+        await ticketCtrl.sendQr(
       widget.orderId,
     );
 
-    orderDetail = orderCtrl.order;
+    if (!mounted) return;
 
-    /// 🔥 1. FETCH TICKETS (retry nhẹ)
-    List<Ticket> result = [];
+    setState(() {
 
-    for (int i = 0; i < 5; i++) {
-      result = await ticketCtrl.fetchTickets(widget.orderId);
+      isLoading = false;
 
-      debugPrint("FETCH TICKETS TRY $i: ${result.length}");
+      message = success
 
-      if (result.isNotEmpty) break;
+          ? "MÃ QR VÉ ĐÃ ĐƯỢC\nGỬI VỀ EMAIL"
 
-      await Future.delayed(const Duration(milliseconds: 800));
-    }
+          : "GỬI VÉ THẤT BẠI";
+    });
 
+    await Future.delayed(
+      const Duration(seconds: 10),
+    );
 
     if (!mounted) return;
 
-    /// ❌ KHÔNG có vé
-    if (result.isEmpty) {
-      setState(() {
-        isPrinting = false;
-        message = "KHÔNG NHẬN ĐƯỢC VÉ";
-      });
-      return;
-    }
+    Navigator.pushAndRemoveUntil(
 
-    /// ✅ có vé → cập nhật UI
-    setState(() {
-      tickets = result;
-      message = "ĐANG IN VÉ...";
-    });
+      context,
 
-    /// 🔥 2. IN VÉ (giả lập)
-    for (var t in tickets) {
-      await _printTicket(t);
-    }
+      MaterialPageRoute(
 
-    if (!mounted) return;
+        builder: (_) => WelcomePage(
+          movies: movieController.movies,
+        ),
+      ),
 
-    /// 🔥 3. DONE
-    setState(() {
-      isPrinting = false;
-      message = "IN VÉ THÀNH CÔNG";
-    });
-  }
-
-  Future<void> _printTicket(Ticket t) async {
-    debugPrint("PRINT: ${t.movie_title} - ${t.seat_name}");
-
-    /// 👉 thay bằng driver thật
-    await Future.delayed(const Duration(milliseconds: 300));
+      (route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
+
       backgroundColor: Colors.black,
 
-      body: isPrinting
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CircularProgressIndicator(color: Colors.orange),
-                  const SizedBox(height: 20),
+      body: Center(
 
-                  Text(
-                    "ORDER ID: ${widget.orderId}",
-                    style: const TextStyle(color: Colors.white),
-                  ),
+        child: Padding(
 
-                  const SizedBox(height: 10),
+          padding: const EdgeInsets.all(24),
 
-                  Text(message, style: const TextStyle(color: Colors.white)),
-                ],
-              ),
-            )
-          /// ❌ FAIL
-          : tickets.isEmpty
-          ? Center(
-              child: Text(
+          child: Column(
+
+            mainAxisAlignment: MainAxisAlignment.center,
+
+            children: [
+
+              if (isLoading)
+                const CircularProgressIndicator(
+                  color: Colors.orange,
+                )
+
+              else
+                Icon(
+
+                  message.contains("THẤT BẠI")
+                      ? Icons.cancel
+                      : Icons.check_circle,
+
+                  color: message.contains("THẤT BẠI")
+                      ? Colors.red
+                      : Colors.green,
+
+                  size: 120,
+                ),
+
+              const SizedBox(height: 30),
+
+              Text(
+
                 message,
-                style: const TextStyle(color: Colors.red, fontSize: 18),
+
+                textAlign: TextAlign.center,
+
+                style: TextStyle(
+
+                  color: message.contains("THẤT BẠI")
+                      ? Colors.red
+                      : Colors.green,
+
+                  fontSize: 28,
+
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            )
-          /// ✅ SUCCESS + HIỂN THỊ VÉ
-          : ListView(
-              padding: const EdgeInsets.all(16),
 
-              children: [
-                /// =====================
-                /// TICKETS
-                /// =====================
-                ...tickets.map((t) {
-                  return Card(
-                    color: const Color(0xFF1E1E1E),
+              const SizedBox(height: 20),
 
-                    margin: const EdgeInsets.only(bottom: 12),  
+              if (!isLoading)
+                const Text(
 
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
+                  "Đang trở về màn hình chính...",
 
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-
-                        children: [
-                          Text(
-                            t.movie_title,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          Text("ID: ${t.id}", style: const TextStyle(color: Colors.white70)),
-
-                          Text("Ngày chiếu: ${t.show_date}", style: const TextStyle(color: Colors.white70)),
-
-                          Text("Giờ chiếu: ${t.start_time}", style: const TextStyle(color: Colors.white70)),
-
-                          Text("Phòng: ${t.theater_room_name}", style: const TextStyle(color: Colors.white70)),
-
-                          Text("Ghế: ${t.seat_name}", style: const TextStyle(color: Colors.white70)),
-
-                          Text("Tạo vào: ${t.created_at}", style: const TextStyle(color: Colors.white70)),
-
-                          const SizedBox(height: 6),
-
-                          Text(
-                            "Trạng thái: ${t.status}",
-                            style: TextStyle(
-                              color: t.status == "CONFIRMED"
-                                  ? Colors.greenAccent
-                                  : Colors.redAccent,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-
-                /// =====================
-                /// ORDER DETAIL
-                /// =====================
-                if (orderDetail != null)
-                  Card(
-                    color: const Color(0xFF2A2A2A),
-
-                    margin: const EdgeInsets.only(top: 20),
-
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-
-                        children: [
-                          const Text(
-                            "THÔNG TIN ĐƠN HÀNG",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.orangeAccent,
-                            ),
-                          ),
-
-                          const SizedBox(height: 12),
-
-                          Text("Order ID: ${orderDetail!.id}"),
-
-                          Text("Khách hàng: ${orderDetail!.name}"),
-
-                          Text(
-                            "Mã thanh toán: ${orderDetail!.paymentOrderCode}",
-                          ),
-
-                          Text(
-                            "Voucher: ${orderDetail!.voucherCode ?? 'Không có'}",
-                          ),
-
-                          Text("Tổng tiền: ${orderDetail!.totalAmount} VNĐ"),
-
-                          Text("Thanh toán lúc: ${orderDetail!.paidAt}"),
-                        ],
-                      ),
-                    ),
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 18,
                   ),
-              ],
-            ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
