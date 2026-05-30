@@ -42,10 +42,6 @@ class _MovieListScreenState
     });
   }
 
-  /// =========================
-  /// LOAD AI RECOMMENDATION
-  /// =========================
-
   Future<void> _loadRecommendation(
       int movieId) async {
 
@@ -70,9 +66,6 @@ class _MovieListScreenState
       "RECOMMENDATIONS: $recommendations",
     );
 
-    /// =========================
-    /// SCORE MAP
-    /// =========================
 
     final scoreMap = {
       for (var item in recommendations)
@@ -81,11 +74,9 @@ class _MovieListScreenState
             item['score']
     };
 
-    /// clone list
     List<dynamic> movies =
         List.from(movieController.movies);
 
-    /// SORT
     movies.sort((a, b) {
 
       final scoreA =

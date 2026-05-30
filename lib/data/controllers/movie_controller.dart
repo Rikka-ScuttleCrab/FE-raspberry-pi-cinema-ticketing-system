@@ -20,7 +20,7 @@ class MovieController extends ChangeNotifier {
     _isLoading = true;
     _failure = null;
     notifyListeners();
-
+    debugPrint("CALL API MOVIES");
     try {
       _movies = await _repository.fetchMovies();
     } catch (e) {

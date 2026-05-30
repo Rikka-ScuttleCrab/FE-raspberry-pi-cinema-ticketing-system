@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../data/controllers/ticket_controller.dart';
-import '../data/controllers/movie_controller.dart';
 import './welcome.dart';
 class TicketPrintingScreen extends StatefulWidget {
 
@@ -45,12 +44,6 @@ class _TicketPrintingScreenState
       listen: false,
     );
 
-    final movieController =
-        Provider.of<MovieController>(
-      context,
-      listen: false,
-    );
-
     final success =
         await ticketCtrl.sendQr(
       widget.orderId,
@@ -81,9 +74,7 @@ class _TicketPrintingScreenState
 
       MaterialPageRoute(
 
-        builder: (_) => WelcomePage(
-          movies: movieController.movies,
-        ),
+        builder: (_) => const WelcomePage(),
       ),
 
       (route) => false,

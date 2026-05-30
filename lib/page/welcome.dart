@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../data/models/movie.dart';
+import 'package:provider/provider.dart';
+import '../data/controllers/movie_controller.dart';
 import 'listMovies.dart';
 
 class WelcomePage extends StatefulWidget {
-  final List<Movie> movies;
 
-  const WelcomePage({super.key, required this.movies});
+  const WelcomePage({super.key});
 
   @override
   State<WelcomePage> createState() => _WelcomePageState();
@@ -17,25 +17,54 @@ class _WelcomePageState extends State<WelcomePage> {
   int _currentPage = 0;
   late Timer _timer;
 
-  @override
-  void initState() {
-    super.initState();
+@override
+void initState() {
+  super.initState();
 
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      final movies = widget.movies;
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _reloadMovies();
+  });
+
+  _timer = Timer.periodic(
+    const Duration(seconds: 3),
+    (timer) {
+      final movies =
+          Provider.of<MovieController>(
+            context,
+            listen: false,
+          ).movies;
+
       if (movies.isEmpty) return;
 
-      _currentPage = (_currentPage + 1) % movies.length;
+      _currentPage =
+          (_currentPage + 1) %
+          movies.length;
+
       if (_pageController.hasClients) {
         _pageController.animateToPage(
           _currentPage,
-          duration: const Duration(milliseconds: 800),
+          duration: const Duration(
+            milliseconds: 800,
+          ),
           curve: Curves.easeInOut,
         );
       }
-    });
-  }
+    },
+  );
+}
 
+  Future<void> _reloadMovies() async {
+
+    final movieCtrl =
+        Provider.of<MovieController>(
+      context,
+      listen: false,
+    );
+
+    await movieCtrl.fetchMovies();
+
+    debugPrint("REFRESH MOVIES");
+  }
   @override
   void dispose() {
     _timer.cancel();
@@ -45,14 +74,22 @@ class _WelcomePageState extends State<WelcomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final movies = widget.movies;
+      final movies =
+      context.watch<MovieController>().movies;
+
 
     return Scaffold(
       body: GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const MovieListScreen()),
-        ),
+        onTap: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const MovieListScreen(),
+            ),
+          );
+
+          await _reloadMovies();
+        },
         child: Stack(
           children: [
             if (movies.isEmpty)

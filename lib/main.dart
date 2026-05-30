@@ -43,10 +43,20 @@ class MovieKioskApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF1A1A1A),
       ),
       home: movieController.isLoading
-          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-          : movieController.errorMessage != null
-          ? Scaffold(body: Center(child: Text(movieController.errorMessage!)))
-          : WelcomePage(movies: movieController.movies),
+    ? const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      )
+    : movieController.errorMessage != null
+        ? Scaffold(
+            body: Center(
+              child: Text(
+                movieController.errorMessage!,
+              ),
+            ),
+          )
+        : const WelcomePage(),
     );
   }
 }
